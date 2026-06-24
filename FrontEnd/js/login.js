@@ -1,12 +1,11 @@
-const loginForm = document.querySelector("form");
+const loginForm = document.getElementById("login-form");
+const loginButton = document.getElementById("login-btn");
 
-loginForm.addEventListener("submit", handleLogin);
+loginForm.addEventListener("submit", async function (event) {
+  event.preventDefault();
 
-async function handleLogin(event) {
-  if (event) event.preventDefault();
-
-  const email = document.querySelector('input[type="email"]').value.trim();
-  const password = document.querySelector('input[type="password"]').value;
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
 
   if (!email || !password) {
     alert("Preencha todos os campos.");
@@ -14,6 +13,9 @@ async function handleLogin(event) {
   }
 
   try {
+    loginButton.classList.add("loading");
+    loginButton.textContent = "Entrando...";
+
     const data = await apiRequest("/auth/login", {
       method: "POST",
       body: JSON.stringify({
@@ -22,10 +24,21 @@ async function handleLogin(event) {
       })
     });
 
-    alert("Login realizado com sucesso!");
-    window.location.href = "admin.html";
-    
+    console.log("Resposta do login:", data);
+
+    if (data.user && data.user.is_admin === true) {
+      window.location.href = "admin.html";
+      return;
+    }
+
+    window.location.href = "index.html";
+
   } catch (error) {
-    alert(error.message);
+    console.error("Erro no login:", error);
+    alert("Erro no login: " + error.message);
+
+  } finally {
+    loginButton.classList.remove("loading");
+    loginButton.textContent = "Entrar";
   }
-}
+});

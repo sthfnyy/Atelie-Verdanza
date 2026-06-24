@@ -1,13 +1,14 @@
 /* ── COMPONENTES REUTILIZÁVEIS ── */
 
 /**
- * Renderiza o header/navegação
+ * Renderiza o header/ Menu de navegação
  */
 function renderNav() {
-  const nav = document.querySelector('nav');
+  const nav = document.querySelector('nav'); // procura no html <nav></nav>
   if (!nav) return;
 
-  nav.innerHTML = `
+  //coloca no Html dentro da tag <nav> o código abaixo
+  nav.innerHTML = ` 
     <a href="index.html" class="nav-logo">Ateliê verdanza</a>
     <ul class="nav-links">
       <li><a href="index.html" class="${getCurrentPage() === 'index' ? 'active' : ''}">Home</a></li>
@@ -31,7 +32,7 @@ function renderNav() {
 }
 
 /**
- * Renderiza o footer
+ * Renderiza o footer/Rodapé
  */
 function renderFooter() {
   const footer = document.querySelector('footer');
@@ -92,7 +93,7 @@ function getCurrentPage() {
 }
 
 /**
- * Exibe notificação (toast)
+ * Exibe notificação (toast) / mensagem temporária
  */
 function showToast(message) {
   const toast = document.getElementById('toast') || createToastElement();
@@ -127,3 +128,65 @@ if (document.readyState === 'loading') {
 } else {
   initComponents();
 }
+
+// Funções do carrinho
+function getCart() {
+  return JSON.parse(localStorage.getItem('cart')) || [];
+}
+
+function saveCart(cart) {
+  localStorage.setItem('cart', JSON.stringify(cart));
+  updateCartCount();
+}
+
+//Contador do carrinho
+function updateCartCount() {
+  const cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+  const totalItems = cart.reduce((total, item) => {
+    return total + Number(item.quantity || 1);
+  }, 0);
+
+const counters = document.querySelectorAll('#nav-badge, .cart-badge, .cart-count, #cart-count, [data-cart-count]');
+  counters.forEach(counter => {
+    counter.textContent = totalItems;
+    counter.style.display = totalItems > 0 ? 'inline-flex' : 'none';
+  });
+}
+
+document.addEventListener('DOMContentLoaded', updateCartCount);
+
+
+function addToCart(product, quantity = 1) {
+  const cart = getCart();
+
+  const productId = String(product.id);
+  const existingItem = cart.find(item => String(item.id) === productId);
+
+  if (existingItem) {
+    existingItem.quantity += Number(quantity);
+  } else {
+    cart.push({
+      id: product.id,
+      name: product.name || product.nome,
+      price: Number(product.price || product.preco || 0),
+      img: product.img || product.image || product.imagem || '',
+      quantity: Number(quantity)
+    });
+  }
+
+  saveCart(cart);
+}
+
+document.addEventListener('DOMContentLoaded', updateCartCount);
+
+
+/**
+ * 1. Menu de navegação
+ * 2. Rodapé
+ * 3. Toast de mensagens
+ * 4. Contador do carrinho
+ * 5. Funções do carrinho
+ * 6. Card de produto
+ * 7. Botão de adicionar ao carrinho
+ */

@@ -547,11 +547,11 @@
         .filter((i) => i && typeof i === 'object')
         .map((i) => ({
           id: i.id,
-          name: i.name,
-          category: i.category || '—',
-          price: Number(i.price) || 0,
-          quantity: Math.max(1, Number(i.quantity ?? i.qty ?? 1) || 1),
-          img: i.img || ''
+          name: i.name || i.nome || 'Produto sem nome',
+          category: i.category || i.categoria || '—',
+          price: Number(i.price || i.preco || i.valor || 0),
+          quantity: Math.max(1, Number(i.quantity ?? i.qty ?? i.quantidade ?? 1) || 1),
+          img: i.img || i.image || i.imagem || ''
         }))
         .filter((i) => i.id != null);
     } catch (_) {
@@ -613,16 +613,15 @@
         <div class="cart-item-right">
           <span class="cart-item-price">${fmt(item.price * item.quantity)}</span>
           <div class="qty-control">
-            <button class="qty-btn" onclick="changeQty(${item.id}, -1)" ${item.quantity <= 1 ? 'disabled' : ''}>
+            <button class="qty-btn" onclick="changeQty('${item.id}', -1)" ${item.quantity <= 1 ? 'disabled' : ''}>
               <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
             <span class="qty-value">${item.quantity}</span>
-            <button class="qty-btn" onclick="changeQty(${item.id}, 1)">
+            <button class="qty-btn" onclick="changeQty('${item.id}', 1)">
               <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
           </div>
-          <button class="remove-btn" onclick="removeItem(${item.id})">Remover</button>
-        </div>
+            <button class="remove-btn" onclick="removeFromCart('${item.id}')">Remover</button>        </div>
       </div>
     `).join('');
 
@@ -651,23 +650,30 @@
 
   /* ── ACTIONS ── */
   function changeQty(id, delta) {
-    const item = cart.find(i => i.id === id);
+    const item = cart.find(i => String(i.id) === String(id));
     if (!item) return;
-    item.quantity = Math.max(1, item.quantity + delta);
+
+    item.quantity = Math.max(1, Number(item.quantity || 1) + delta);
+
+    saveCart();
+
+    if (typeof updateCartCount === 'function') {
+      updateCartCount();
+    }
+
     render();
   }
 
-  function removeItem(id) {
-    const el = document.getElementById(`item-${id}`);
-    if (el) {
-      el.style.transition = 'opacity 0.3s, transform 0.3s';
-      el.style.opacity    = '0';
-      el.style.transform  = 'translateX(20px)';
-      setTimeout(() => {
-        cart = cart.filter(i => i.id !== id);
-        render();
-      }, 300);
+  function removeFromCart(id) {
+    cart = cart.filter(item => String(item.id) !== String(id));
+
+    saveCart();
+
+    if (typeof updateCartCount === 'function') {
+      updateCartCount();
     }
+
+    render();
   }
 
   function applyCoupon() {

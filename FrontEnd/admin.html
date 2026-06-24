@@ -369,16 +369,21 @@
     }
 
     .product-thumb {
-      width: 40px;
-      height: 40px;
-      border-radius: 6px;
+      width: 56px;
+      height: 56px;
+      border-radius: 8px;
       overflow: hidden;
       flex-shrink: 0;
       background: var(--cream);
+      border: 1px solid var(--border);
     }
 
-    .product-thumb img { width: 100%; height: 100%; object-fit: cover; }
-
+    .product-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
     .product-cell-info .name { font-size: 0.84rem; font-weight: 400; }
     .product-cell-info .sub  { font-size: 0.72rem; color: var(--text-light); }
 
@@ -720,7 +725,7 @@
       </button>
     </nav>
     <div class="sidebar-footer">
-      <button class="sidebar-logout" onclick="if(confirm('Deseja sair?')) window.location.href='login.html'">
+      <button class="sidebar-logout" onclick="logoutAdmin()">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Sair
       </button>
@@ -764,8 +769,6 @@
               <select class="field-input" id="prod-cat">
                 <option value="Plantas">Plantas</option>
                 <option value="Flores">Flores</option>
-                <option value="Vasos">Vasos</option>
-                <option value="Acessórios">Acessórios</option>
               </select>
             </div>
           </div>
@@ -978,246 +981,8 @@
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<script>
-  /* ── DATA ── */
-  let products = [
-    {
-      id: 1,
-      name: 'Suculenta',
-      sub: 'Planta ornamental',
-      price: 319.90,
-      status: 'em_estoque',
-      img: 'resources/images/90b89e249c82e6dc5cbd5a1f773eaf8c.jpg'
-    },
-    {
-      id: 2,
-      name: 'Pacova',
-      sub: 'Planta de interior',
-      price: 99.99,
-      status: 'esgotando',
-      img: 'resources/images/8754e248f99b5927f030bced0a93fb36.jpg'
-    },
-    {
-      id: 3,
-      name: 'Begônia maculata',
-      sub: 'Folhagem decorativa',
-      price: 150.00,
-      status: 'em_estoque',
-      img: 'resources/images/f0d31b0b3237e0a5a88f2f86ca38bd6e.jpg'
-    },
-  ];
+<script src="js/api.js"></script>
+<script src="js/admin.js"></script>
 
-  const orders = [
-    { id: '#ORD-9022', client: 'Beatriz Silveira', items: 2, total: 'R$ 264,00', status: 'pendente'  },
-    { id: '#ORD-9018', client: 'Henrique Costa',  items: 1, total: 'R$ 89,00',  status: 'enviado'   },
-    { id: '#ORD-8995', client: 'Mariana Luz',     items: 3, total: 'R$ 412,00', status: 'entregue'  },
-    { id: '#ORD-8981', client: 'Carlos Mendes',   items: 1, total: 'R$ 189,00', status: 'entregue'  },
-  ];
-
-  let deleteTarget = null;
-  let nextId = 10;
-
-  /* ── STATUS HELPERS ── */
-  const statusBadge = {
-    em_estoque: '<span class="badge badge-green"><span class="badge-dot"></span>Em estoque</span>',
-    esgotando:  '<span class="badge badge-orange"><span class="badge-dot"></span>Esgotando</span>',
-    esgotado:   '<span class="badge badge-red"><span class="badge-dot"></span>Esgotado</span>',
-  };
-
-  const orderStatusBadge = {
-    pendente: '<span class="status-badge status-pendente">Pendente ˅</span>',
-    enviado:  '<span class="status-badge status-enviado">Pronto para Retirada ˅</span>',
-    entregue: '<span class="status-badge status-entregue">Entregue</span>',
-  };
-
-  /* ── RENDER CATALOG ── */
-  function renderCatalog() {
-    const tbody = document.getElementById('catalog-tbody');
-    if (products.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-light);font-size:.82rem;">Nenhum produto cadastrado.</td></tr>';
-      return;
-    }
-    tbody.innerHTML = products.map(p => `
-      <tr>
-        <td>
-          <div class="product-cell">
-            <div class="product-thumb">
-              <img src="${p.img}" alt="${p.name}" />
-            </div>
-            <div class="product-cell-info">
-              <p class="name">${p.name}</p>
-              <p class="sub">${p.sub}</p>
-            </div>
-          </div>
-        </td>
-        <td>${statusBadge[p.status] || ''}</td>
-        <td style="white-space:nowrap;">R$ ${p.price.toFixed(2).replace('.', ',')}</td>
-        <td>
-          <button class="action-btn" title="Editar" onclick="editProduct(${p.id})">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button class="action-btn del" title="Remover" onclick="askDelete(${p.id})">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-          </button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  /* ── RENDER RECENT ORDERS ── */
-  function renderRecentOrders() {
-    const el = document.getElementById('recent-orders-list');
-    el.innerHTML = orders.slice(0, 3).map(o => `
-      <div class="order-card">
-        <div class="order-top">
-          <div>
-            <p class="order-id">${o.id}</p>
-            <p class="order-name">${o.client}</p>
-          </div>
-          <button class="order-menu-btn">⋯</button>
-        </div>
-        <div class="order-bottom">
-          <span class="order-meta">${o.items} ${o.items === 1 ? 'Item' : 'Itens'} • ${o.total}</span>
-          ${orderStatusBadge[o.status]}
-        </div>
-      </div>
-    `).join('');
-  }
-
-  /* ── RENDER ALL ORDERS ── */
-  function renderAllOrders() {
-    const tbody = document.getElementById('all-orders-tbody');
-    tbody.innerHTML = orders.map(o => `
-      <tr>
-        <td style="font-weight:400;">${o.id}</td>
-        <td>${o.client}</td>
-        <td>${o.items}</td>
-        <td>${o.total}</td>
-        <td>${orderStatusBadge[o.status]}</td>
-        <td>
-          <button class="action-btn" title="Ver detalhes">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  /* ── SAVE PRODUCT ── */
-  function saveProduct() {
-    const nome  = document.getElementById('prod-nome').value.trim();
-    const desc  = document.getElementById('prod-desc').value.trim();
-    const preco = parseFloat(document.getElementById('prod-preco').value);
-    const cat   = document.getElementById('prod-cat').value;
-
-    if (!nome) { showToast('Informe o nome do produto.'); return; }
-    if (!preco || preco <= 0) { showToast('Informe um preço válido.'); return; }
-
-    const preview = document.getElementById('upload-preview');
-    const img = preview.style.display !== 'none' && preview.src
-      ? preview.src
-      : `https://images.unsplash.com/photo-1512428813834-c702c7702b78?w=80&q=70`;
-
-    products.push({
-      id: nextId++,
-      name: nome,
-      sub: cat,
-      price: preco,
-      status: 'em_estoque',
-      img
-    });
-
-    // Reset form
-    document.getElementById('prod-nome').value  = '';
-    document.getElementById('prod-desc').value  = '';
-    document.getElementById('prod-preco').value = '';
-    preview.style.display = 'none';
-    preview.src = '';
-    document.getElementById('upload-icon').style.display = '';
-    document.getElementById('upload-text').style.display = '';
-
-    renderCatalog();
-    showToast(`"${nome}" cadastrado com sucesso! ✓`);
-  }
-
-  /* ── EDIT PRODUCT ── */
-  function editProduct(id) {
-    const p = products.find(x => x.id === id);
-    if (!p) return;
-    document.getElementById('prod-nome').value  = p.name;
-    document.getElementById('prod-desc').value  = p.sub;
-    document.getElementById('prod-preco').value = p.price;
-    // scroll to form
-    document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
-    showToast('Editando produto — faça as alterações e salve.');
-    // remove old entry so save creates updated one
-    products = products.filter(x => x.id !== id);
-  }
-
-  /* ── DELETE ── */
-  function askDelete(id) {
-    deleteTarget = id;
-    document.getElementById('del-modal').classList.add('open');
-  }
-
-  function closeModal() {
-    deleteTarget = null;
-    document.getElementById('del-modal').classList.remove('open');
-  }
-
-  function confirmDelete() {
-    if (deleteTarget === null) return;
-    products = products.filter(p => p.id !== deleteTarget);
-    closeModal();
-    renderCatalog();
-    showToast('Produto removido.');
-  }
-
-  /* ── IMAGE PREVIEW ── */
-  function previewImage(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const prev = document.getElementById('upload-preview');
-      prev.src = ev.target.result;
-      prev.style.display = 'block';
-      document.getElementById('upload-icon').style.display = 'none';
-      document.getElementById('upload-text').style.display = 'none';
-    };
-    reader.readAsDataURL(file);
-  }
-
-  /* ── SECTION SWITCH ── */
-  function showSection(name) {
-    document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-
-    document.getElementById(`panel-${name}`).classList.add('active');
-
-    const map = { produtos: 0, pedidos: 1, clientes: 2 };
-    document.querySelectorAll('.nav-item')[map[name]]?.classList.add('active');
-
-    if (name === 'pedidos')  renderAllOrders();
-  }
-
-  /* ── TOAST ── */
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(window._tt);
-    window._tt = setTimeout(() => t.classList.remove('show'), 2800);
-  }
-
-  /* ── CLOSE MODAL ON BACKDROP ── */
-  document.getElementById('del-modal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
-  });
-
-  /* ── INIT ── */
-  renderCatalog();
-  renderRecentOrders();
-</script>
 </body>
 </html>

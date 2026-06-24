@@ -395,144 +395,34 @@
   <!-- TOAST (GLOBAL) -->
   <div class="toast" id="toast"></div>
 
-  <!-- SCRIPTS -->
   <script src="components.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/produto.js"></script>
 
-<script>
-  let currentQty = 1;
-  let currentProduct = null;
-
-  function formatPrice(price) {
-    return Number(price).toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    });
-  }
-
-  async function loadProduct() {
-    try {
-      const params = new URLSearchParams(window.location.search);
-
-      const id = params.get("id");
-
-      if (!id) {
-        alert("Produto não encontrado.");
-        return;
-      }
-
-      const data = await apiRequest(`/products/${id}`);
-
-      currentProduct = data.product;
-
-      renderProduct();
-
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao carregar produto.");
-    }
-  }
-
-  function renderProduct() {
-    if (!currentProduct) return;
-
-    document.title = `${currentProduct.name} — Ateliê Verdanza`;
-
-    document.querySelector(".product-title").textContent =
-      currentProduct.name;
-
-    document.querySelector(".price-current").textContent =
-      formatPrice(currentProduct.price);
-
-    document.querySelector(".product-description").textContent =
-      currentProduct.description || "Sem descrição disponível.";
-
-    document.getElementById("main-image").src =
-      currentProduct.img;
-
-    document.getElementById("main-image").alt =
-      currentProduct.name;
-
-    const thumbs = document.querySelectorAll(".gallery-thumb img");
-
-    thumbs.forEach(img => {
-      img.src = currentProduct.img;
-      img.alt = currentProduct.name;
-    });
-
-    const categoryEl = document.getElementById('feature-category');
-    if (categoryEl) categoryEl.textContent = currentProduct.category || '—';
-
-    const statusEl = document.getElementById('feature-status');
-    if (statusEl) statusEl.textContent = currentProduct.status || '—';
-  }
-
-  function increaseQty() {
-    currentQty++;
-
-    document.getElementById('qty').textContent =
-      currentQty;
-  }
-
-  function decreaseQty() {
-    if (currentQty > 1) {
-      currentQty--;
-
-      document.getElementById('qty').textContent =
-        currentQty;
-    }
-  }
-
-  function selectImage(index) {
-    const thumbs =
-      document.querySelectorAll('.gallery-thumb');
-
-    thumbs.forEach(t =>
-      t.classList.remove('active')
-    );
-
-    thumbs[index].classList.add('active');
-  }
-
-  function addToCart() {
-    if (!currentProduct) return;
-
-    let cart =
-      JSON.parse(localStorage.getItem("cart")) || [];
-
-    const existing =
-      cart.find(item => item.id === currentProduct.id);
-
-    if (existing) {
-      existing.quantity += currentQty;
-
-    } else {
-
-      cart.push({
-        id: currentProduct.id,
-        name: currentProduct.name,
-        price: currentProduct.price,
-        img: currentProduct.img,
-        quantity: currentQty
-      });
-    }
-
-    localStorage.setItem("cart", JSON.stringify(cart));
-
-    if (typeof window.showToast === 'function') {
-      window.showToast(`${currentProduct.name} (${currentQty}x) adicionado ao carrinho`);
-    } else {
-      alert(`${currentProduct.name} (${currentQty}x) adicionado ao carrinho`);
-    }
-
-    currentQty = 1;
-
-    document.getElementById('qty').textContent =
-      currentQty;
-  }
-
-  // INICIAR PRODUTO
-  loadProduct();
-</script>
 </body>
 </html>
+</body>
+</html>
+
+*/1. Ler o ID do produto pela URL.
+*2. Buscar esse produto no BackEnd.
+*3. Mostrar imagem, nome, preço, categoria e descrição.
+*4. Permitir adicionar o produto ao carrinho.
+*5. Talvez mostrar produtos relacionados.
+
+
+
+
+
+*Usuário clica no produto no catálogo
+
+*Vai para produto.html?id=3
+
+*produto.html lê o id 3
+
+*Chama a API: GET /api/products/3
+
+*Recebe os dados do produto
+
+*Renderiza os detalhes na tela
+**/

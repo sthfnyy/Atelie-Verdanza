@@ -27,13 +27,15 @@ async function ensureCsrfToken() {
   let token = getCookie('csrfToken');
   if (token) return token;
 
-  // Gera cookie CSRF no backend (double submit)
-  await fetch(`${API_URL}/auth/csrf`, {
+  const response = await fetch(`${API_URL}/auth/csrf`, {
     method: 'GET',
     credentials: 'include'
   });
 
-  token = getCookie('csrfToken');
+  const data = await response.json();
+
+  token = data.csrfToken || getCookie('csrfToken');
+
   return token;
 }
 
@@ -48,9 +50,12 @@ async function apiRequest(endpoint, options = {}) {
 
   if (!isSafeMethod) {
     const csrfToken = await ensureCsrfToken();
-    if (csrfToken) {
-      headers['X-CSRF-Token'] = csrfToken;
+
+    if (!csrfToken) {
+      throw new Error("Não foi possível obter o token CSRF.");
     }
+
+    headers['X-CSRF-Token'] = csrfToken;
   }
 
   const response = await fetch(`${API_URL}${endpoint}`, {

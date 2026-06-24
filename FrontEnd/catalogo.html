@@ -532,7 +532,7 @@
         <span>Plantas</span>
       </label>
       <label class="category-item">
-        <input type="checkbox" value="Flores" onchange="filterProducts()" />
+        <input type="checkbox" value="Flores" checked onchange="filterProducts()" />
         <span>Flores</span>
       </label>
     </div>
@@ -562,22 +562,23 @@
       currency: 'BRL'
     });
   }
-
+//chama a api de produtos
   async function loadProducts() {
     try {
-      const data = await apiRequest("/products");
+      // serve para buscar produtos na rota:
+      const data = await apiRequest("/products"); 
 
-      allProducts = data.products.map(product => ({
+      allProducts = data.map(product => ({
         id: product.id,
         name: product.name,
-        price: formatPrice(product.price),
+        price: Number(product.price),
         category: product.category,
-        img: product.img
+        img: product.image
       }));
 
       filtered = [...allProducts];
 
-      render();
+      filterProducts();
 
     } catch (error) {
       console.error(error);
@@ -585,11 +586,12 @@
     }
   }
 
+  // verifica quais categorias estão marcadas no filtro lateral.
   function getActiveCategories() {
     return [...document.querySelectorAll('.category-list input:checked')]
       .map(cb => cb.value);
   }
-
+// filtra os produtos por categoria e texto digitado
   function filterProducts() {
     const cats = getActiveCategories();
 
@@ -614,6 +616,7 @@
     render();
   }
 
+  // desenha os cards
   function render() {
     const grid = document.getElementById('product-grid');
 
@@ -645,8 +648,7 @@
 
           <div class="product-info">
             <span class="product-name">${p.name}</span>
-            <span class="product-price">${p.price}</span>
-          </div>
+            <span class="product-price">${formatPrice(p.price)}</span>          </div>
         </div>
       `).join('');
     }
@@ -654,6 +656,7 @@
     renderPagination();
   }
 
+  //Essa função cria os botões da paginação.
   function renderPagination() {
     const total = Math.ceil(filtered.length / PER_PAGE);
 
@@ -692,6 +695,7 @@
     pg.innerHTML = html;
   }
 
+  // Essa função muda de página.
   function goPage(n) {
     const total = Math.ceil(filtered.length / PER_PAGE);
 
@@ -711,44 +715,48 @@
     window.location.href = `produto.html?id=${id}`;
   }
 
-  function addToCart(event, productId) {
+  function addToCart(event, id) {
     event.stopPropagation();
 
-    const product = allProducts.find(p => p.id === productId);
+    const produto = allProducts.find(p => String(p.id) === String(id));
 
-    if (!product) return;
+    if (!produto) {
+      alert('Produto não encontrado.');
+      return;
+    }
 
-    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-    const existing = cart.find(item => item.id === product.id);
+    const existingItem = cart.find(item => String(item.id) === String(produto.id));
 
-    if (existing) {
-      existing.quantity += 1;
-
+    if (existingItem) {
+      existingItem.quantity = Number(existingItem.quantity || 1) + 1;
     } else {
       cart.push({
-        ...product,
+        id: produto.id,
+        name: produto.name || 'Produto sem nome',
+        category: produto.category || '—',
+        price: Number(produto.price || 0),
+        img: produto.img || '',
         quantity: 1
       });
     }
 
-    localStorage.setItem("cart", JSON.stringify(cart));
+    localStorage.setItem('cart', JSON.stringify(cart));
 
-    const toast = document.getElementById('toast');
+    if (typeof updateCartCount === 'function') {
+      updateCartCount();
+    }
 
-    toast.textContent =
-      `"${product.name}" adicionado ao carrinho`;
-
-    toast.classList.add('show');
-
-    clearTimeout(window._toastTimer);
-
-    window._toastTimer = setTimeout(() => {
-      toast.classList.remove('show');
-    }, 2400);
+    if (typeof showToast === 'function') {
+      showToast('Produto adicionado ao carrinho!');
+    } else {
+      alert('Produto adicionado ao carrinho!');
+    }
   }
 
-  function subscribeNewsletter(btn) {
+
+function subscribeNewsletter(btn) {
     const input = btn.previousElementSibling;
 
     if (!input.value.includes('@')) {
