@@ -309,7 +309,16 @@ def create_order(
         "discount": new_order.discount,
         "status": new_order.status,
         "created_at": new_order.created_at.strftime("%d/%m/%Y %H:%M"),
-        "items_count": total_qty
+        "items_count": total_qty,
+        "items": [
+            {
+                "id": item.id,
+                "product_id": item.product_id,
+                "quantity": item.quantity,
+                "price": item.price,
+                "product_name": item.product.name if item.product else "Produto não encontrado"
+            } for item in new_order.items
+        ]
     }
 
 
@@ -336,7 +345,16 @@ def get_orders(
             "discount": order.discount,
             "status": order.status,
             "created_at": order.created_at.strftime("%d/%m/%Y %H:%M"),
-            "items_count": items_count
+            "items_count": items_count,
+            "items": [
+                {
+                    "id": item.id,
+                    "product_id": item.product_id,
+                    "quantity": item.quantity,
+                    "price": item.price,
+                    "product_name": item.product.name if item.product else "Produto não encontrado"
+                } for item in order.items
+            ]
         })
     return response
 
@@ -367,7 +385,16 @@ def update_order_status(
         "discount": order.discount,
         "status": order.status,
         "created_at": order.created_at.strftime("%d/%m/%Y %H:%M"),
-        "items_count": items_count
+        "items_count": items_count,
+        "items": [
+            {
+                "id": item.id,
+                "product_id": item.product_id,
+                "quantity": item.quantity,
+                "price": item.price,
+                "product_name": item.product.name if item.product else "Produto não encontrado"
+            } for item in order.items
+        ]
     }
 
 

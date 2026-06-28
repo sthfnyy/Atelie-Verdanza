@@ -53,7 +53,8 @@ async function carregarPedidosAdmin() {
       client: order.client_name,
       items: order.items_count,
       total: `R$ ${order.total_price.toFixed(2).replace(".", ",")}`,
-      status: order.status
+      status: order.status,
+      rawItems: order.items
     }));
     renderRecentOrders();
     updateOrderDashboardStats();
@@ -61,6 +62,70 @@ async function carregarPedidosAdmin() {
     console.error("Erro ao carregar pedidos:", error);
     showToast("Erro ao carregar pedidos: " + error.message);
   }
+}
+
+function showOrderDetails(dbId) {
+  const order = orders.find(o => o.dbId === dbId);
+  if (!order) return;
+
+  const modalId = `order-details-modal-${dbId}`;
+  
+  const existing = document.getElementById(modalId);
+  if (existing) existing.remove();
+
+  const itemsHtml = (order.rawItems || []).map(item => `
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem;">
+      <div style="display: flex; flex-direction: column;">
+        <span style="font-weight: 500; color: var(--text-dark);">${item.product_name}</span>
+        <span style="font-size: 0.72rem; color: var(--text-light);">Preço unitário: R$ ${item.price.toFixed(2).replace(".", ",")}</span>
+      </div>
+      <div style="text-align: right;">
+        <span style="font-weight: 400; color: var(--text-mid); margin-right: 16px;">x${item.quantity}</span>
+        <span style="font-weight: 500; color: var(--text-dark);">R$ ${(item.price * item.quantity).toFixed(2).replace(".", ",")}</span>
+      </div>
+    </div>
+  `).join('');
+
+  const modalHtml = `
+    <div id="${modalId}" class="modal-overlay open" style="z-index: 2000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+      <div class="modal" style="background: white; border-radius: 12px; width: 90%; max-width: 500px; padding: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); box-sizing: border-box;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+          <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 500; color: var(--text-dark); margin: 0;">Detalhes do Pedido</h3>
+          <span style="font-size: 0.8rem; font-weight: 500; background: var(--cream); padding: 4px 10px; border-radius: 20px; color: var(--text-dark);">${order.id}</span>
+        </div>
+        
+        <div style="margin-bottom: 24px; font-size: 0.85rem; color: var(--text-mid); display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <strong style="display: block; color: var(--text-light); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">Cliente</strong>
+            <span style="color: var(--text-dark); font-weight: 400;">${order.client}</span>
+          </div>
+          <div>
+            <strong style="display: block; color: var(--text-light); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">Status</strong>
+            <span style="text-transform: capitalize; color: var(--text-dark); font-weight: 400;">${order.status}</span>
+          </div>
+        </div>
+
+        <h4 style="font-family: 'Jost', sans-serif; font-size: 0.78rem; font-weight: 500; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 6px;">Itens Pedidos</h4>
+        
+        <div style="max-height: 240px; overflow-y: auto; margin-bottom: 24px; padding-right: 4px;">
+          ${itemsHtml}
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--warm-white); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+          <span style="font-size: 0.85rem; font-weight: 400; color: var(--text-mid);">Total do Pedido</span>
+          <span style="font-size: 1.2rem; font-weight: 600; color: var(--dark-green);">${order.total}</span>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+          <button onclick="document.getElementById('${modalId}').remove()" class="btn-primary" style="margin: 0; width: auto; padding: 10px 24px; font-size: 0.75rem; letter-spacing: 0.05em; height: auto;">Fechar</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = modalHtml;
+  document.body.appendChild(tempDiv.firstElementChild);
 }
 
 function updateOrderDashboardStats() {
@@ -459,7 +524,7 @@ function renderAllOrders() {
       <td>${order.total}</td>
       <td>${renderOrderStatusSelect(order)}</td>
       <td>
-        <button class="action-btn" title="Ver detalhes" onclick="alert('Detalhes do pedido:\\nID: ${order.id}\\nCliente: ${order.client}\\nTotal: ${order.total}\\nItens: ${order.items}')">
+        <button class="action-btn" title="Ver detalhes" onclick="showOrderDetails(${order.dbId})">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
             <circle cx="12" cy="12" r="3"/>

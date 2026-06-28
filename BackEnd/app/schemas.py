@@ -83,6 +83,7 @@ class OrderResponse(BaseModel):
     status: str
     created_at: str
     items_count: int
+    items: list[OrderItemResponse]
 
 
 class OrderStatusUpdate(BaseModel):
