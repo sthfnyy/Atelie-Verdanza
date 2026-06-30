@@ -1,6 +1,6 @@
 # Python
-__pycache__/
-*.pyc
+app/__pycache__/
+app/*.pyc
 venv/
 .env
 

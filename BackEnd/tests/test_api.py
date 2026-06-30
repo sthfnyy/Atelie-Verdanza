@@ -314,6 +314,46 @@ def test_delete_product_non_admin(client):
     assert response.status_code == 403
 
 
+def test_delete_product_with_orders(client):
+    client.post("/api/auth/register", json={
+        "name": "Cliente Pedido",
+        "email": "cliente_del@example.com",
+        "password": "password123"
+    })
+    client.post("/api/auth/login", json={
+        "email": "cliente_del@example.com",
+        "password": "password123"
+    })
+    
+    prod_resp = client.get("/api/products")
+    products = prod_resp.json()
+    product_id = products[0]["id"]
+    product_price = products[0]["price"]
+
+    order_payload = {
+        "items": [
+            {
+                "product_id": product_id,
+                "quantity": 1,
+                "price": product_price
+            }
+        ],
+        "discount": 0.0,
+        "total_price": product_price
+    }
+    order_resp = client.post("/api/orders", json=order_payload)
+    assert order_resp.status_code == 200
+
+    # Login as admin
+    client.post("/api/auth/login", json={"email": "admin@verdanza.com", "password": "12345678"})
+
+    # Try to delete the product that has an order
+    response = client.delete(f"/api/products/{product_id}")
+    assert response.status_code == 400
+    assert "pedido" in response.json()["detail"].lower()
+
+
+
 # Order Creation & List Tests
 def test_create_order(client):
     # Register and login user

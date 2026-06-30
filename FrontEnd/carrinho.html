@@ -161,60 +161,7 @@
 
     .remove-btn:hover { color: #c0392b; }
 
-    /* ── RECOMMENDED ── */
-    .recommended {
-      margin-top: 40px;
-    }
 
-    .recommended h2 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.3rem;
-      font-weight: 400;
-      margin-bottom: 20px;
-    }
-
-    .rec-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 190px);
-      gap: 20px;
-    }
-
-    .rec-card {
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-
-    .rec-card:hover {
-      transform: translateY(-4px);
-    }
-
-    .rec-card-img {
-      border-radius: 8px;
-      overflow: hidden;
-      aspect-ratio: 1 / 1;
-      background: var(--cream);
-      margin-bottom: 10px;
-    }
-
-    .rec-card-img img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.4s ease;
-    }
-
-    .rec-card:hover .rec-card-img img { transform: scale(1.05); }
-
-    .rec-card-name {
-      font-size: 0.82rem;
-      color: var(--text-dark);
-      margin-bottom: 3px;
-    }
-
-    .rec-card-price {
-      font-size: 0.78rem;
-      color: var(--text-light);
-    }
 
     /* ── SUMMARY SIDEBAR ── */
     .summary-col {
@@ -455,26 +402,7 @@
         <!-- rendered by JS -->
       </div>
 
-      <!-- RECOMMENDED -->
-      <div class="recommended">
-        <h2>Você também pode gostar</h2>
-        <div class="rec-grid">
-          <div class="rec-card" onclick="openProduct(3)">
-            <div class="rec-card-img">
-              <img src="resources/images/f0d31b0b3237e0a5a88f2f86ca38bd6e.jpg" alt="Begônia maculata" />
-            </div>
-            <p class="rec-card-name">Begônia maculata</p>
-            <p class="rec-card-price">R$ 150,00</p>
-          </div>
-          <div class="rec-card" onclick="openProduct(1)">
-            <div class="rec-card-img">
-              <img src="resources/images/8754e248f99b5927f030bced0a93fb36.jpg" alt="Pacova" />
-            </div>
-            <p class="rec-card-name">Pacova</p>
-            <p class="rec-card-price">R$ 99,99</p>
-          </div>
-        </div>
-      </div>
+
     </div>
 
     <!-- RIGHT COL -->
@@ -691,10 +619,6 @@
       msg.textContent = 'Cupom inválido ou expirado.';
       msg.className   = 'coupon-msg err';
     }
-  }
-
-  function openProduct(id) {
-    window.location.href = `produto.html?id=${id}`;
   }
 
   async function checkout() {

@@ -11,12 +11,21 @@ from app.database import Base, User, Product, Order, OrderItem
 # Importa a instância do FastAPI com um alias para evitar sombreamento com o pacote 'app'
 from app.main import app as fastapi_app
 
+from sqlalchemy import event
+
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args={"check_same_thread": False},
     poolclass=StaticPool
 )
+
+@event.listens_for(engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
+
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Redireciona SessionLocal e criação de tabelas para usar SQLite nos testes
