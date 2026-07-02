@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: verdanza_user
       POSTGRES_PASSWORD: 12345678
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - verdanza_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -18,7 +18,9 @@ services:
       retries: 5
 
   backend:
-    build: .
+    build:
+      context: ./BackEnd
+      dockerfile: Dockerfile
     container_name: verdanza_backend
     restart: always
     depends_on:
@@ -28,6 +30,17 @@ services:
       DATABASE_URL: postgresql://verdanza_user:12345678@postgres:5432/verdanza
     ports:
       - "3001:3001"
+
+  frontend:
+    build:
+      context: ./FrontEnd
+      dockerfile: Dockerfile
+    container_name: verdanza_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
 
 volumes:
   verdanza_postgres_data:

@@ -6,6 +6,8 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.coverage
+htmlcov/
 
 # Virtual environment
 venv/
@@ -15,17 +17,31 @@ BackEnd/venv/
 
 # Environment variables
 .env
+.env.local
+.env.*.local
 
 # SQLite/local databases
 *.db
 *.sqlite
 *.sqlite3
 
+# Docker/local volumes
+postgres_data/
+verdanza_postgres_data/
+
 # OS/editor
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # Logs
 *.log
+logs/
+
+# Node/npm, caso use futuramente no frontend
+node_modules/
+dist/
+build/
