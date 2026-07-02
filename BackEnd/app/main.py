@@ -5,6 +5,8 @@ from sqlalchemy import inspect, text
 from app.seed import create_admin_user, seed_products
 
 from app.database import create_tables, get_db, SessionLocal, User, Product, Order, OrderItem
+
+
 from app.schemas import (
     UserCreate,
     UserLogin,
@@ -250,6 +252,16 @@ def delete_product(
 
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
+
+    product_has_orders = db.query(OrderItem).filter(
+        OrderItem.product_id == product_id
+    ).first()
+
+    if product_has_orders:
+        raise HTTPException(
+            status_code=400,
+            detail="Produto não pode ser removido porque já está vinculado a um pedido"
+        )
 
     db.delete(product)
     db.commit()

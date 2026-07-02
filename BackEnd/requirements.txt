@@ -5,4 +5,7 @@ pydantic
 passlib[bcrypt]
 python-multipart
 email-validator
-pip freeze > requirements.txt
+psycopg2-binary
+pytest
+httpx
+bcrypt==4.0.1

@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: verdanza_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: verdanza
+      POSTGRES_USER: verdanza_user
+      POSTGRES_PASSWORD: 12345678
+    ports:
+      - "5432:5432"
+    volumes:
+      - verdanza_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U verdanza_user -d verdanza"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: verdanza_backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://verdanza_user:12345678@postgres:5432/verdanza
+    ports:
+      - "3001:3001"
+
+volumes:
+  verdanza_postgres_data:

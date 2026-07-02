@@ -1,16 +1,31 @@
 # Python
-app/__pycache__/
-app/*.pyc
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environment
 venv/
+.venv/
+env/
+BackEnd/venv/
+
+# Environment variables
 .env
 
-# Banco local
+# SQLite/local databases
 *.db
+*.sqlite
+*.sqlite3
 
-# Sistema operacional
+# OS/editor
 .DS_Store
 Thumbs.db
-
-# Editores
 .vscode/
 .idea/
+
+# Logs
+*.log
