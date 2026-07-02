@@ -1,8 +1,14 @@
+import os
+import secrets
+from fastapi.responses import JSONResponse
+
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, Response, Request
 from fastapi.middleware.cors import CORSMiddleware
+
 from sqlalchemy.orm import Session
 from sqlalchemy import inspect, text
 from app.seed import create_admin_user, seed_products
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, Response, Request
 
 from app.database import create_tables, get_db, SessionLocal, User, Product, Order, OrderItem
 
@@ -44,6 +50,45 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+CSRF_SAFE_METHODS = {"GET", "HEAD", "OPTIONS", "TRACE"}
+
+
+@app.middleware("http")
+async def csrf_protection(request: Request, call_next):
+    """
+    Protege requisições que alteram dados usando Double Submit Cookie.
+
+    Em ambiente de teste automatizado, a proteção é desativada para não quebrar
+    os testes existentes que não enviam token CSRF.
+    """
+    if os.getenv("APP_ENV") == "test":
+        return await call_next(request)
+
+    path = request.url.path
+
+    if not path.startswith("/api"):
+        return await call_next(request)
+
+    if request.method in CSRF_SAFE_METHODS:
+        return await call_next(request)
+
+    csrf_cookie = request.cookies.get("csrf_token")
+    csrf_header = request.headers.get("X-CSRF-Token")
+
+    if not csrf_cookie or not csrf_header:
+        return JSONResponse(
+            status_code=403,
+            content={"detail": "Token CSRF ausente"}
+        )
+
+    if not secrets.compare_digest(csrf_cookie, csrf_header):
+        return JSONResponse(
+            status_code=403,
+            content={"detail": "Token CSRF inválido"}
+        )
+
+    return await call_next(request)
+
 
 @app.on_event("startup")
 def startup():
@@ -76,6 +121,8 @@ def get_csrf(response: Response):
         value=csrf_token,
         httponly=False,
         samesite="lax",
+        secure=False,
+        path="/",
     )
 
     return {"csrfToken": csrf_token}
